@@ -1,6 +1,6 @@
 ### 3주차 프로젝트 
 패키지 출처 
-두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2
+두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2  
 강사 : https://github.com/Juwan-s/doosan-robot2
     
 #### 1. 설치 가이드 
@@ -32,5 +32,6 @@ installFile에서 01_Install_docker 설치
 
 
 ### 2. 연습 실행
-![ros2 launch dsr_bringup2 dsr_bringup2_rviz.launch.py mode:=virtual host:=127.0.0.1 port:=12345 model:=m0609](docs/pr1.png)
+ros2 launch dsr_bringup2 dsr_bringup2_rviz.launch.py mode:=virtual host:=127.0.0.1 port:=12345 model:=m0609  
+![alt text](docs/pr1.png)
 
