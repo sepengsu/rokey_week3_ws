@@ -1,6 +1,7 @@
 ### 3주차 프로젝트 
 패키지 출처 
 두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2
+강사 : https://github.com/Juwan-s/doosan-robot2
     
 #### 1. 설치 가이드 
 필요 패키지 설치 
@@ -27,3 +28,6 @@ git clone -b humble https://github.com/ros-controls/gz_ros2_control
 rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
 cd ~/rokey_week3_ws/colcon build
 ```
+installFile에서 01_Install_docker 설치 
+
+
