@@ -31,3 +31,6 @@ cd ~/rokey_week3_ws/colcon build
 installFile에서 01_Install_docker 설치 
 
 
+### 2. 연습 실행
+![ros2 launch dsr_bringup2 dsr_bringup2_rviz.launch.py mode:=virtual host:=127.0.0.1 port:=12345 model:=m0609](docs/pr1.png)
+
