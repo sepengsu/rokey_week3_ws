@@ -1,5 +1,7 @@
 ### 3주차 프로젝트 
-
+패키지 출처 
+두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2
+    
 #### 1. 설치 가이드 
 필요 패키지 설치 
 ```
