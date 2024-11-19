@@ -26,7 +26,8 @@ https://github.com/Juwan-s/doosan-robot2
 git clone -b humble https://github.com/ros-controls/gz_ros2_control
 
 rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
-cd ~/rokey_week3_ws/colcon build
+cd ~/rokey_week3_ws
+colcon build
 ```
 installFile에서 01_Install_docker 설치 
 
