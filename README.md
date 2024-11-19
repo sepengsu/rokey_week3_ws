@@ -1,6 +1,6 @@
 ### 3주차 프로젝트 
 패키지 출처 
-두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2  
+두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2 error가 있음  
 강사 : https://github.com/Juwan-s/doosan-robot2
     
 #### 1. 설치 가이드 
@@ -26,7 +26,8 @@ https://github.com/Juwan-s/doosan-robot2
 git clone -b humble https://github.com/ros-controls/gz_ros2_control
 
 rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
-cd ~/rokey_week3_ws/colcon build
+cd ~/rokey_week3_ws
+colcon build
 ```
 installFile에서 01_Install_docker 설치 
 
@@ -34,4 +35,30 @@ installFile에서 01_Install_docker 설치
 ### 2. 연습 실행
 ros2 launch dsr_bringup2 dsr_bringup2_rviz.launch.py mode:=virtual host:=127.0.0.1 port:=12345 model:=m0609  
 ![alt text](docs/pr1.png)
+```
+export PYTHONPATH=$PYTHONPATH:~/ros2_ws/install/common2/lib/common2/imp 
+```
+RSR 모드 실행을 위해 꼭 필요
+
+```
+ros2 run rokey simple_move
+```
+
+### 꿀팁 
+https://github1s.com/  
+github에서 이걸로 바뀌면 vscode 형식으로 볼 수 있음 
+
+```
+ros2 service list | grep AAA  
+```
+이 코드는 특정 서비스의 리스트들을 확인해주는 방법 
+```
+ros2 service type AAA
+```
+이 코드는 특정 서비스의 타입들을 확인하여 어떤 것들로 call할지 확인한다.
+
+```
+ros2 service call AAA BBB "{}"
+```
+이거로 call하면 됨 
 
