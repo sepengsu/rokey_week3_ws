@@ -3,7 +3,7 @@
 두산 로보틱스: https://github.com/doosan-robotics/doosan-robot2 error가 있음  
 강사 : https://github.com/Juwan-s/doosan-robot2
     
-#### 1. 설치 가이드 
+#### 설치 가이드 
 필요 패키지 설치 
 ```
 ### Prerequisite installation elements before package installation
@@ -36,7 +36,7 @@ installFile에서 01_Install_docker 설치
 ros2 launch dsr_bringup2 dsr_bringup2_rviz.launch.py mode:=virtual host:=127.0.0.1 port:=12345 model:=m0609  
 ![alt text](docs/pr1.png)
 ```
-export PYTHONPATH=$PYTHONPATH:~/ros2_ws/install/common2/lib/common2/imp 
+export PYTHONPATH=$PYTHONPATH:~/rokey_week3_ws/install/common2/lib/common2/imp 
 ```
 RSR 모드 실행을 위해 꼭 필요
 
@@ -62,3 +62,8 @@ ros2 service call AAA BBB "{}"
 ```
 이거로 call하면 됨 
 
+### Rokey ros2 함수 살펴보기 
+
+1. install/common2/lib/common2/imp 안에 있는 파일들에서 drl와 비슷한 코드가 많음 
+2. DSR_ROBOT2에서 함수를 찾을 수 있다. 명령어 (ex: get_current_posj 등)
+3. 
