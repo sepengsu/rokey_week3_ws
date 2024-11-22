@@ -1,18 +1,40 @@
 import rclpy
 from rclpy.node import Node
-from DR_init import __dsr__id, __dsr__model, __dsr__node
+import DR_init
 from myutils.drl_function import generate_3x3_pattern
 
 # for single robot
 ROBOT_ID = "dsr01"
 ROBOT_MODEL = "m0609"
 VELOCITY, ACC = 45, 45
-__dsr__id = ROBOT_ID
-__dsr__model = ROBOT_MODEL
-__dsr__node = rclpy.create_node("rokey_simple_move", namespace=ROBOT_ID)
+DR_init.__dsr__id = ROBOT_ID
+DR_init.__dsr__model = ROBOT_MODEL
+DR_init.__dsr__node = rclpy.create_node("rokey_simple_move", namespace=ROBOT_ID)
+        # 필요한 모듈 가져오기
+from DSR_ROBOT2 import (
+    set_tool,
+    set_tcp,
+    movej,
+    movel,
+    set_digital_output,
+    get_digital_input,
+    wait,
+    get_current_posx,
+    release_compliance_ctrl,
+    check_force_condition,
+    task_compliance_ctrl,
+    set_desired_force,
+    DR_FC_MOD_REL,
+    DR_AXIS_Z,
+    DR_BASE,
+    parallel_axis,
+    DR_TOOL,
+    set_ref_coord,
+)
+from DR_common2 import posx,posj
 
 class RobotController:
-    def __init__(self, robot_id="dsr01", robot_model="m0609", node=__dsr__node,Vel=45,Acc=45):
+    def __init__(self, robot_id="dsr01", robot_model="m0609", node=DR_init._dsr__node,Vel=45,Acc=45):
         self.robot_id = robot_id
         self.robot_model = robot_model
         self.node = node
@@ -22,63 +44,22 @@ class RobotController:
         self.ACC = Acc
         self.ON = 1
         self.OFF = 0
-
-        # 필요한 모듈 가져오기
-        try:
-            from DSR_ROBOT2 import (
-                set_tool,
-                set_tcp,
-                movej,
-                movel,
-                set_digital_output,
-                get_digital_input,
-                wait,
-                get_current_posx,
-                release_compliance_ctrl,
-                check_force_condition,
-                task_compliance_ctrl,
-                set_desired_force,
-                DR_FC_MOD_REL,
-                DR_AXIS_Z,
-                DR_BASE,
-                parallel_axis,
-                DR_TOOL,
-                set_ref_coord,
-            )
-            from DSR_common2 import posx, posj
-            self.set_tool = set_tool
-            self.set_tcp = set_tcp
-            self.movej = movej
-            self.movel = movel
-            self.set_digital_output = set_digital_output
-            self.get_digital_input = get_digital_input
-            self.wait = wait
-            self.get_current_posx = get_current_posx
-            self.release_compliance_ctrl = release_compliance_ctrl
-            self.check_force_condition = check_force_condition
-            self.task_compliance_ctrl = task_compliance_ctrl
-            self.set_desired_force = set_desired_force
-            self.parallel_axis = parallel_axis
-            self.set_ref_coord = set_ref_coord
-            self.posx = posx
-            self.posj = posj
-        except ImportError as e:
-            self.node.get_logger().error(f"Error importing DSR_ROBOT2: {e}")
-            raise
+        self.posx = posx
+        self.posj = posj
 
     def wait_digital_input(self, sig_num):
-        while not self.get_digital_input(sig_num):
-            self.wait(0.5)
+        while not get_digital_input(sig_num):
+            wait(0.5)
             self.node.get_logger().info("Wait for digital input")
 
     def ungrip(self):
-        self.set_digital_output(2, self.ON)
-        self.set_digital_output(1, self.OFF)
+        set_digital_output(2, self.ON)
+        set_digital_output(1, self.OFF)
 
     def grip(self):
         self.ungrip()
-        self.set_digital_output(1, self.ON)
-        self.set_digital_output(2, self.OFF)
+        set_digital_output(1, self.ON)
+        set_digital_output(2, self.OFF)
 
     def point_to_point(self, position1, position2):
         pos1_zup = position1.copy()
@@ -86,30 +67,47 @@ class RobotController:
         pos2_zup = position2.copy()
         pos2_zup[2] += 100
 
-        self.movel(pos1_zup, vel=self.VELOCITY, acc=self.ACC)
-        self.movel(position1, vel=self.VELOCITY, acc=self.ACC)
+        movel(pos1_zup, vel=self.VELOCITY, acc=self.ACC)
+        movel(position1, vel=self.VELOCITY, acc=self.ACC)
         self.grip()
-        self.wait(0.5)
+        wait(0.5)
 
         pos1_zup[2] += 70
-        self.movel(pos1_zup, vel=self.VELOCITY, acc=self.ACC)
-        self.movel(pos2_zup, vel=self.VELOCITY, acc=self.ACC)
-        self.movel(position2, vel=self.VELOCITY, acc=self.ACC)
-        self.wait(0.3)
+        movel(pos1_zup, vel=self.VELOCITY, acc=self.ACC)
+        movel(pos2_zup, vel=self.VELOCITY, acc=self.ACC)
+        movel(position2, vel=self.VELOCITY, acc=self.ACC)
+        wait(0.3)
         self.ungrip()
-        self.wait(0.3)
-        self.movel(pos2_zup, vel=self.VELOCITY, acc=self.ACC)
+        wait(0.3)
+        movel(pos2_zup, vel=self.VELOCITY, acc=self.ACC)
+
+    def z_pointing(postiton: posx) -> float:
+        '''
+        다음과 같은 로직으로 구현
+        1. 바로 찍으면 안되니 z 위로 100으로 가기
+        2. comliance control을 이용하여 z축 이동
+        '''
+        postiton_zup = postiton.copy()
+        postiton_zup[2] += 80
+        movel(postiton_zup, vel=VELOCITY, acc=ACC)
+        task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+        set_desired_force(fd=[0, 0, -10, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+        while not check_force_condition(DR_AXIS_Z, max=5):
+            pos = get_current_posx()
+            pass
+        release_compliance_ctrl()
+        movel(postiton_zup, vel=VELOCITY, acc=ACC)
+        return pos[2]
 
     def cleanup(self):
         self.node.destroy_node()
         rclpy.shutdown()
 
 class PointList:
-    def __init__(self, robot_id="dsr01", robot_model="m0609", node=__dsr__node):
+    def __init__(self, node=DR_init.__dsr__node):
         self.pallet_1 = []
         self.pallet_2 = []
         try:
-            from DSR_common2 import posx
             self.posx = posx
         except ImportError as e:
             node.get_logger().error(f"Error importing DSR_common2: {e}")
@@ -151,6 +149,7 @@ class Pallet:
             return self.middle_list.index_output()
         elif types ==2:
             return self.short_list.index_output()
+        
 def type_select(z: float, offset=3.0) -> int:
     long = 65
     middle = 55
@@ -169,24 +168,23 @@ def main():
     controller = RobotController()
     JReady = [0, 0, 90, 0, 90, 0]
     # index class 지정
-    pallet = Pallet()
+    pal1,pal2 = PointList()()
     movej(JReady, vel=VELOCITY, acc=ACC)
+    pallet = Pallet()
     
     while rclpy.ok():
         set_tool("Tool Weight_GR")
         set_tcp("GripperDA_11")
-        pal1 = [pos1,pos2,pos3,pos4]
-        pal2 = [pos5,pos6,pos7,pos8]
         # 초기 위치로 이동
         for i in range(9):
             init_pos = generate_3x3_pattern(pal1,i) # 초기 위치 얻기
-            z = z_pointing(init_pos)
+            z = controller.z_pointing(init_pos)
             mode = type_select(z)
             print("mdoe is {}".format(mode))
             index = pallet.index_returns(mode)
             print("move to {}".format(index+1))
             de_pos = generate_3x3_pattern(pal2,index)
-            point_to_point(init_pos,de_pos)
+            controller.point_to_point(init_pos,de_pos)
             print("point to point end {}".format(i+1))
         movej(JReady, vel=VELOCITY, acc=ACC)
         break

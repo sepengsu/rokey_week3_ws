@@ -24,6 +24,7 @@ setup(
             'random_place = week3.practice.random_place:main',
             'domino = week3.practice.domino:main',
             'sp_domino = week3.practice.sp_domino:main',
+            'gear = week3.practice.gear:main', 
         ],
     },
 )
