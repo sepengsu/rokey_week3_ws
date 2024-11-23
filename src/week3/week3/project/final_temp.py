@@ -11,6 +11,12 @@ CUP_HEIGHT = 95
 GRIP_HEIGHT = 12
 CUP_WIDE = 80
 
+'''
+1. UpSideDownController
+2. RobotController
+
+'''
+
 def main(args=None):
     rclpy.init(args=args)
     node = rclpy.create_node("rokey_simple_move", namespace=ROBOT_ID)
@@ -315,3 +321,13 @@ def main(args=None):
     movej(JReady, vel=VELOCITY, acc=ACC)
     rclpy.shutdown()
 
+
+
+
+
+class UpSideDownController:
+    def __def__(self,stack_pos, drop_pos):
+        self.stack_pos = stack_pos
+        self.drop_pos = drop_pos
+        self.default_set = [VELOCITY,ACC]
+        self.above_set = [VELOCITY,ACC]

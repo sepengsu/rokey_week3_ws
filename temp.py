@@ -1,48 +1,57 @@
-class counter:
-    def __init__(self,point_list:list):
-        self.count = 0
-        self.container = point_list
-    def index_output(self):
-        index = self.container[self.count]
-        self.count+=1
-        if self.count > len(self.container):
-            raise ValueError("Index out of range")
-        return index
+# Corrected positions where the centroids of each triangle are aligned at the origin
+import numpy as np
+import matplotlib.pyplot as plt
+r = 1
+sqrt3 = np.sqrt(3)
 
-class Pallet:
-    def __init__(self):
-        self.long_list = counter([2,5,8])
-        self.middle_list = counter([1,4,7])
-        self.short_list = counter([0,3,6])
-    
-    def index_returns(self, types: int):
-        if types ==0:
-            return self.long_list.index_output()
-        elif types ==1:
-            return self.middle_list.index_output()
-        elif types ==2:
-            return self.short_list.index_output()
+# Compute the vertical offset for centroids alignment
+offsets = [0, -sqrt3 * r, -2 * sqrt3 * r]  # Offsets for 1st, 2nd, and 3rd rows
 
+# Define circle centers for proper triangle alignment
+circle_centers_with_triangles = [
+    # First row (1 circle, directly at the centroid)
+    (0, offsets[0]),
 
-def type_select(z: float, offset=3.0):
-    long = 65
-    middle = 55
-    short = 45
-    if abs(z - long) < offset:
-        return 0
-    elif abs(z - middle) < offset:
-        return 1
-    elif abs(z - short) < offset:
-        return 2
-    else:
-        raise ValueError("Invalid type")
+    # Second row (3 circles forming a triangle with centroid aligned at origin)
+    (-r, offsets[1]), (0, offsets[1]), (r, offsets[1]),
 
-if __name__ == "__main__":
-    pal = Pallet()
-    z1 = 67
-    z2 = 57
-    z3 = 47
-    print(pal.index_returns(type_select(z1)))
-    print(pal.index_returns(type_select(z2)))
-    print(pal.index_returns(type_select(z3)))
+    # Third row (6 circles forming a triangle with centroid aligned at origin)
+    (-2 * r, offsets[2]), (-r, offsets[2]), (0, offsets[2]),
+    (r, offsets[2]), (2 * r, offsets[2])
+]
 
+# Plot the circles and the triangles
+plt.figure(figsize=(6, 6))
+
+# Draw circles
+for center in circle_centers_with_triangles:
+    circle = plt.Circle(center, r, color='blue', fill=False, linewidth=1.5)
+    plt.gca().add_artist(circle)
+    plt.plot(center[0], center[1], 'ro')  # Mark the center
+    plt.text(center[0], center[1], f"{center}", fontsize=8, ha='center', color='green')
+
+# Draw the triangles for each row
+# First row: no triangle (1 circle only)
+# Second row triangle
+plt.plot(
+    [-r, 0, r, -r], [offsets[1], offsets[1], offsets[1], offsets[1]],
+    color='purple', linestyle='--', linewidth=1.5, label="Second Row Triangle"
+)
+# Third row triangle
+plt.plot(
+    [-2 * r, 0, 2 * r, -2 * r], [offsets[2], offsets[2], offsets[2], offsets[2]],
+    color='orange', linestyle='--', linewidth=1.5, label="Third Row Triangle"
+)
+
+# Add labels and grid
+plt.axhline(0, color='black', linewidth=0.5, linestyle='--')
+plt.axvline(0, color='black', linewidth=0.5, linestyle='--')
+plt.grid(color='gray', linestyle='--', linewidth=0.5)
+plt.gca().set_aspect('equal', adjustable='box')
+plt.title("Pyramid of Circles with Centroids of Rows Aligned to Origin")
+plt.xlabel("x-axis")
+plt.ylabel("y-axis")
+plt.xlim(-4, 4)
+plt.ylim(-6, 1)
+plt.legend()
+plt.show()

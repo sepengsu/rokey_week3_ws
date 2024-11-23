@@ -25,6 +25,7 @@ setup(
             'domino = week3.practice.domino:main',
             'sp_domino = week3.practice.sp_domino:main',
             'gear = week3.practice.gear:main', 
+            'stacking = week3.project.stacking:main',
         ],
     },
 )
