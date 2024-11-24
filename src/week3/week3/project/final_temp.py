@@ -1,5 +1,6 @@
 import rclpy
 import DR_init
+from myutils.drl_function import trans_1d, trans_2d
 # for single robot
 ROBOT_ID = "dsr01"
 ROBOT_MODEL = "m0609"
@@ -36,6 +37,8 @@ def main(args=None):
             task_compliance_ctrl,
             set_desired_force,
             DR_FC_MOD_REL,
+            DR_AXIS_X,
+            DR_AXIS_Y,
             DR_AXIS_Z,
             DR_BASE,
             parallel_axis,
@@ -46,6 +49,8 @@ def main(args=None):
             DR_FC_MOD_ABS,
             trans,
             amove_periodic,
+            ikin,
+            fkin
         )
         from DR_common2 import posx,posj
     except ImportError as e:
@@ -191,7 +196,8 @@ def main(args=None):
             pos1_zup = init_pos_astract.copy()
             pos1_zup[2] += 10 # offser
             movel(pos1_zup,vel=self.above_set[0],acc=self.above_set[1])
-            z_height = self.z_pointing(pos1_zup)
+            # z_height = self.z_pointing(pos1_zup)
+            z_height = 100
             movel(pos1_zup,vel=self.above_set[0],acc=self.above_set[1])
             pos_grip = init_pos_astract.copy()
             pos_grip[2] = z_height -GRIP_HEIGHT # z높이에 맞춰서 가기
@@ -209,7 +215,7 @@ def main(args=None):
             movel(final_pos_abstract,vel=self.default_set[0],acc=self.default_set[1]) # 대충 위치 지정 
             final_pos_abstract[2] -= 90
             movel(final_pos_abstract,vel=self.default_set[0],acc=self.default_set[1]) # 대충 위치 지정
-            self.force_release()
+            # self.force_release()
             final_zup = final_pos_abstract.copy()
             final_zup[2] += 50
             movel(final_zup,vel=self.above_set[0],acc=self.above_set[1])
@@ -255,9 +261,6 @@ def main(args=None):
     stacked_pos = posx([512.29,225.20,212.78,178.54,179.78,178.14])
     swing_catch_pos = posj([-11.562, 36.378, 98.07, 82.794, 96.067, -43.032])
     swing_up_pos_x = posx([500.978, 27.599, 300.406, 88.119, 90.616, 91.824]) # 위로 올라가는 위치
-    swing_upside_down_pos = posj([-11.564, 26.086, 91.705, 84.914, 97.874, 153.986]) # upsite_down 위치
-    swin_final_pos_x = posx([500.899, 27.571, 228.971, 88.115, 90.603, -87.829])
-    swin_final_pos_j = posj([-11.564, 26.086, 91.705, 84.914, 97.874, 153.986])
 
     move1 = posx([508.28, 223.75,330.06,143.90,-177.13,145.79])
     move2 = move1.copy()
@@ -322,7 +325,30 @@ def main(args=None):
     rclpy.shutdown()
 
 
+class UpSideDownSpace:
+    def __init__(self,stack_pos, drop_pos):
+        self.space = []
+        self.stack_pos = stack_pos
+        self.drop_pos = drop_pos
 
+    def get_other_points(self,up_pos,down_pos):
+        '''
+        처음 pos2개 이동을 가져오기 
+        '''
+        self.up_pos = up_pos
+        self.down_pos = down_pos
+    def calculate_space(self,cur_pos):
+        '''
+        down_pos를 기준으로 여러 포즈 계산
+        1. pos1: down_pos에서 100mm 위로 이동
+        2. pos2: pos1에서 100mm 위로 이동
+        '''
+        self.pos_list = []
+        pos1 = cur_pos.copy()
+
+
+
+    
 
 
 class UpSideDownController:

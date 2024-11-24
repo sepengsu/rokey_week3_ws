@@ -131,10 +131,6 @@ def main(args=None):
                         print("return_home")
                         self.stack_pos[2]-=self.stack_stage.z_delta # z축 이동
 
-
-        def final_stacking(self,init_pos,final_pos):
-            pass
-
         def return_home(self,stack_pos):
             '''
             1. current_pos에서 z축 이동 

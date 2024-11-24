@@ -24,6 +24,9 @@ def main(args=None):
             set_tcp,
             movej,
             movel,
+            ikin,
+            fkin,
+            DR_BASE
         )
 
         from DR_common2 import posx, posj
@@ -36,6 +39,8 @@ def main(args=None):
     pos1 = posx([496.06, 93.46, 296.92, 20.75, 179.00, 19.09])
     pos2 = posx([548.70, -193.46, 96.92, 20.75, 179.00, 19.09])
     pos3 = posx([596.70, -7.46, 196.92, 20.75, 179.00, 19.09])
+
+    pos4 = ikin(po1,2,DR_BASE)
 
     while rclpy.ok():
         set_tool("Tool Weight_2FG")
