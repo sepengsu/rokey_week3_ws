@@ -3,7 +3,7 @@ import DR_init
 # for single robot
 ROBOT_ID = "dsr01"
 ROBOT_MODEL = "m0609"
-VELOCITY, ACC = 45, 45
+VELOCITY, ACC = 100,100
 DR_init.__dsr__id = ROBOT_ID
 DR_init.__dsr__model = ROBOT_MODEL
 ON, OFF = 1, 0
@@ -211,7 +211,7 @@ def main(args=None):
     JReady = [0, 0, 90, 0, 90, 0]
     init_pos = posx([267.0029602050781, 9.029313087463379, 46.36891174316406, 173.65997314453125, 179.57017517089844, 173.2434844970703])
     x_delta = 300
-    space = DeltaSpace(x_delta=37,y_delta=24/1.7,num=9)
+    space = DeltaSpace(x_delta=37,y_delta=24/1.7,num=4)
     star_init_pos = space.get_line_pos(init_pos,num=4)
     space.get_abs_star_pos(star_init_pos)
     space_list = space.total_pos()

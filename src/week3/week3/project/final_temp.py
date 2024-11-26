@@ -17,7 +17,45 @@ CUP_WIDE = 80
 2. RobotController
 
 '''
+def trans_1d(pos,mode:str,axis:int,delta:float) -> list:
+    '''
+    ### parameter
+    pos: list of 6 elements (or posx,posj)  
+    mode: 'posx or posj'  
+    axis: 참고사항에 있는 파라미터 중 하나   
+    delta: 변화량
 
+    ### description
+    pos의 axis에 해당하는 값을 delta만큼 변화시킨다.  
+    주의: posx에서는 pos[3:6]은 변화할 수 없다.
+
+    #### 참고사항
+    DR_AXIS_X = 0  
+    DR_AXIS_Y = 1  
+    DR_AXIS_Z = 2  
+
+    
+    JOINT_AXIS_1 = 0  
+    JOINT_AXIS_2 = 1  
+    JOINT_AXIS_3 = 2  
+    JOINT_AXIS_4 = 3  
+    JOINT_AXIS_5 = 4  
+    JOINT_AXIS_6 = 5  
+    
+    '''
+    trans_pos = pos.copy()
+    if mode == 'posx':
+        if axis not in [0,1,2]:
+            raise ValueError("axis 변환은 x,y,z만 가능합니다.")
+    elif mode == 'posj':
+        if axis not in [0,1,2,3,4,5]:
+            raise ValueError("joint 변환은 1,2,3,4,5,6만 가능합니다.")
+    else:
+        raise ValueError("mode should be 'posx' or 'posj'")
+    
+    trans_pos[axis] += delta
+    return trans_pos
+    
 def main(args=None):
     rclpy.init(args=args)
     node = rclpy.create_node("rokey_simple_move", namespace=ROBOT_ID)
@@ -40,6 +78,7 @@ def main(args=None):
             DR_AXIS_X,
             DR_AXIS_Y,
             DR_AXIS_Z,
+            JOG_AXIS_JOINT_6,
             DR_BASE,
             parallel_axis,
             DR_TOOL,
@@ -50,13 +89,124 @@ def main(args=None):
             trans,
             amove_periodic,
             ikin,
-            fkin
+            fkin,
+            get_solution_space
         )
         from DR_common2 import posx,posj
     except ImportError as e:
         print(f"Error importing DSR_ROBOT2 : {e}")
         return
     import numpy as np
+
+
+    class UpSideDownSpace:
+        def __init__(self,stack_pos, drop_pos):
+            self.space = []
+            self.stack_pos = stack_pos
+            self.drop_pos = drop_pos
+
+        def get_other_points(self,up_pos,down_pos):
+            '''
+            처음 pos2개 이동을 가져오기 
+            '''
+            self.up_pos = up_pos
+            self.down_pos = down_pos
+        def calculate_upside_down(self,cur_pos):
+            '''
+            맨처음 pos를 기준으로 여러 포즈 계산
+            1. pos1: down_pos에서 100mm 위로 이동
+            2. pos2: pos1에서 100mm 위로 이동
+            '''
+            pos1 = cur_pos.copy() # 초기 위의 위치 
+            sol_space = 2 # 계산한 결과 
+            pos2 = trans_1d(pos1,'posx',DR_AXIS_Z,-100) # 100mm 아래로 이동
+            pos3 = trans_1d(pos2,'posx',DR_AXIS_Z, 100) # 100mm 위로 이동
+            pos3j = ikin(pos3, sol_space) # pos3의 joint space -- 주의 요망
+            pos4 = posj(trans_1d(pos3j,'posj',JOG_AXIS_JOINT_6,180)) # 180도 회전
+            print(pos4)
+            print(type(pos4))
+            # pos4x = fkin(pos4, sol_space) # pos4의 x space
+            pos4x = posx([500, -50, 93, 154.034, 179.304, 152.018])
+            pos5 = trans_1d(pos4x,'posx',DR_AXIS_Z,-80) # 100mm 밑으로 이동
+            pos6  = trans_1d(pos5,'posx',DR_AXIS_Y,-150) # 150mm 뒤로 이동 
+
+            self.upside_down_space = [pos1,pos2,pos3,pos4,pos5,pos6]
+
+        def calculate_move_spcace(self,cur_pos):
+            '''
+            뒤집어진 컵 움직이기 
+            '''
+            pos1 = cur_pos.copy() # 초기 위치
+            pos2 = trans_1d(pos1,'posx',DR_AXIS_Z,-40) # 40mm 아래로 이동
+            pos3 = trans_1d(pos2,'posx',DR_AXIS_Z,40) # 40mm 위로 이동
+            pos4 = trans_1d(pos3,'posx',DR_AXIS_X,-200) # 200mm 오른쪽으로 이동
+            pos5 = trans_1d(pos4,'posx',DR_AXIS_Z,-205) # 205mm 아래로 이동
+            pos6 = trans_1d(pos5,'posx',DR_AXIS_Z,150) # 150mm 위로 이동
+            self.move_space = [pos1,pos2,pos3,pos4,pos5,pos6]
+    
+    class UpSideDownController:
+        def __def__(self,space:UpSideDownSpace):
+            self.upside_down_space = space.upside_down_space
+            self.move_space = space.move_space
+        
+        def main(self):
+            self.grip_process()
+            self.upside_down()
+            self.put_down()
+            self.returning()
+            self.moving()
+
+        def grip(self):
+            set_digital_output(2, OFF)
+            set_digital_output(1, ON)
+            wait(0.5)
+        def ungrip(self):
+            set_digital_output(1, OFF)
+            set_digital_output(2, ON)
+            wait(0.5)
+        def grip_wide(self):
+            set_digital_output(1, ON)
+            wait(0.5)
+            set_digital_output(2, ON)
+            wait(0.5)
+
+        def grip_process(self):
+            self.ungrip()
+            wait(1.0)
+            movel(self.upside_down_space[0],vel=VELOCITY,acc=ACC) # 컴 피쳐 위치로 이동
+            movel(self.upside_down_space[1],vel=VELOCITY,acc=ACC) # 아래로 이동
+            wait(1.0)
+            self.grip_wide()
+            wait(1.5)
+        
+        def upside_down(self):
+            movel(self.upside_down_space[2],vel=VELOCITY,acc=ACC) # 위로 이동
+            movej(self.upside_down_space[3],vel=VELOCITY,acc=ACC) # 180도 회전
+        
+        def put_down(self):
+            movel(self.upside_down_space[4],vel=VELOCITY,acc=ACC) # 아래로 이동
+            self.ungrip()
+            wait(1.5)
+        
+        def returning(self):
+            movel(self.upside_down_space[5],vel=VELOCITY,acc=ACC) # 뒤로 이동
+        
+        def moving(self):
+            movel(self.move_space[0],vel=VELOCITY,acc=ACC) # 초기 위치로 이동
+            movel(self.move_space[1],vel=VELOCITY,acc=ACC) # 아래로 이동
+            self.grip()
+            wait(1.0)
+            movel(self.move_space[2],vel=VELOCITY,acc=ACC) # 위쪽으로 이동
+            movel(self.move_space[3],vel=VELOCITY,acc=ACC) # 오른쪽으로 이동
+            movel(self.move_space[4],vel=VELOCITY,acc=ACC) # 아래로 이동
+            self.ungrip()
+            wait(1.0)
+            movel(self.move_space[5],vel=VELOCITY,acc=ACC) # 위로 이동
+
+
+
+            
+
 
     class PyrmidSpace:
         def __init__(self):
@@ -280,6 +430,7 @@ def main(args=None):
     while rclpy.ok():
         set_tool("Tool Weight_GR")
         set_tcp("GripperDA_11")
+        set_ref_coord(DR_BASE)
         # movej(JReady, vel=VELOCITY, acc=ACC)
         # controller.ungrip()
         # wait(1.0)
@@ -323,37 +474,3 @@ def main(args=None):
         break
     movej(JReady, vel=VELOCITY, acc=ACC)
     rclpy.shutdown()
-
-
-class UpSideDownSpace:
-    def __init__(self,stack_pos, drop_pos):
-        self.space = []
-        self.stack_pos = stack_pos
-        self.drop_pos = drop_pos
-
-    def get_other_points(self,up_pos,down_pos):
-        '''
-        처음 pos2개 이동을 가져오기 
-        '''
-        self.up_pos = up_pos
-        self.down_pos = down_pos
-    def calculate_space(self,cur_pos):
-        '''
-        down_pos를 기준으로 여러 포즈 계산
-        1. pos1: down_pos에서 100mm 위로 이동
-        2. pos2: pos1에서 100mm 위로 이동
-        '''
-        self.pos_list = []
-        pos1 = cur_pos.copy()
-
-
-
-    
-
-
-class UpSideDownController:
-    def __def__(self,stack_pos, drop_pos):
-        self.stack_pos = stack_pos
-        self.drop_pos = drop_pos
-        self.default_set = [VELOCITY,ACC]
-        self.above_set = [VELOCITY,ACC]

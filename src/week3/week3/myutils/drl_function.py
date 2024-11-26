@@ -15,7 +15,7 @@ def generate_3x3_pattern(points,index):
     return pattern[index].tolist()
 
 
-def trans_1d(pos,mode,axis:int,delta:float) -> list:
+def trans_1d(pos,mode:str,axis:int,delta:float) -> list:
     '''
     ### parameter
     pos: list of 6 elements (or posx,posj)  
@@ -52,7 +52,7 @@ def trans_1d(pos,mode,axis:int,delta:float) -> list:
         raise ValueError("mode should be 'posx' or 'posj'")
     
     trans_pos[axis] += delta
-    return trans_pos
+    return list(trans_pos)
 
 def trans_2d(pos,mode,axis:tuple,detla:tuple) -> list:
     '''
@@ -90,6 +90,8 @@ def trans_2d(pos,mode,axis:tuple,detla:tuple) -> list:
         if axis[0] not in [0,1,2,3,4,5] or axis[1] not in [0,1,2,3,4,5]:
             raise ValueError("joint 변환은 1,2,3,4,5,6만 가능합니다.")
         trans_pos[axis[0]] += detla[0]
+
+    return list(trans_pos)
 
 if __name__ == "__main__":
     import rclpy

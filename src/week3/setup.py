@@ -26,6 +26,7 @@ setup(
             'sp_domino = week3.practice.sp_domino:main',
             'gear = week3.practice.gear:main', 
             'stacking = week3.project.stacking:main',
+            'move = week3.basic.move:main',
         ],
     },
 )
