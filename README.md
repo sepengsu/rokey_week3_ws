@@ -75,6 +75,8 @@
   </tr>
 </table>
 
+[Full 비디오 다운로드](https://github.com/sepengsu/rokey_week3_ws//raw/main/docs/final.mp4)
+
 ## 🚀 설치 및 실행 방법
 1. 프로젝트를 클론합니다.
    ```bash
