@@ -69,10 +69,8 @@
       <br><b>height Estimation using force control</b></br>
     </td>
     <td align="center">
-    <video width="300" controls>
-    <source src="docs/final.mp4" type="video/mp4">
-    </video>
-      <br><b>Full Video</b></br>
+      <img src="docs/stack1.gif" width="295">
+      <br><b>Upside down top cup</b></br>
     </td>
   </tr>
 </table>
